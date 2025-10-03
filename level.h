@@ -1,5 +1,5 @@
 //
-// Created by Zhou Yitao on 2018-12-04.
+// Created by Zhou Yitao on 2025-10-01.
 //
 
 #ifndef LEVEL_H
@@ -21,13 +21,15 @@ public:
     Level();
     void enque(Packet* packet, int index);
     Packet* deque();
+    int sizeAtIndex(int index);
+    Packet* dequeAtIndex(int index);
     int getCurrentIndex();
     void setCurrentIndex(int index);             // 07212019 Peixuan: set serving FIFO (especially for convergence FIFO)
     void getAndIncrementIndex();
     int getCurrentFifoSize();
     bool isCurrentFifoEmpty();
     int size();
-    int get_level_pkt_cnt();
+    int getLevelPktCnt();
 };
 
 

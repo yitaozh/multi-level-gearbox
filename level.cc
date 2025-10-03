@@ -1,5 +1,5 @@
 //
-// Created by Zhou Yitao on 2018-12-04.
+// Created by Zhou Yitao on 2025-10-01.
 //
 
 #include "level.h"
@@ -17,17 +17,27 @@ void Level::enque(Packet* packet, int index) {
     // hdr_ip* iph = hdr_ip::access(packet);
 
     fifos_[index]->enque(packet);
-    pkt_cnt_++:
+    pkt_cnt_++;
 }
 
 Packet* Level::deque() {
-    Packet *packet;
-
-
     if (isCurrentFifoEmpty()) {
         return 0;
     }
-    packet = fifos_[current_index_]->deque();
+    Packet* packet = fifos_[current_index_]->deque();
+    pkt_cnt_--;
+    return packet;
+}
+
+int Level::sizeAtIndex(int index) {
+    return fifos_[index]->length();
+}
+
+Packet* Level::dequeAtIndex(int index) {
+    if (fifos_[index]->length() == 0) {
+        return 0;
+    }
+    Packet* packet = fifos_[index]->deque();
     pkt_cnt_--;
     return packet;
 }
@@ -61,6 +71,6 @@ int Level::size() {
     return sizeof(fifos_) / sizeof(fifos_[0]);
 }
 
-int Level::get_level_pkt_cnt() {
+int Level::getLevelPktCnt() {
     return pkt_cnt_;
 }
