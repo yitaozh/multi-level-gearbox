@@ -7,7 +7,7 @@
 Flow::Flow(int id, float weight) {
     this->flowid_ = id;
     this->weight_ = weight;
-    this->brustness_ = DEFAULT_BRUSTNESS;
+    this->burstiness_ = DEFAULT_BURSTINESS;
     this->insert_level_ = 0;
     this->last_departure_round_ = 0;
 }
@@ -15,7 +15,7 @@ Flow::Flow(int id, float weight) {
 Flow::Flow(int id, float weight, int brustness) {
     this->flowid_ = id;
     this->weight_ = weight;
-    this->brustness_ = brustness;
+    this->burstiness_ = brustness;
     this->insert_level_ = 0;
     this->last_departure_round_ = 0;
 }
@@ -44,11 +44,11 @@ void Flow::setInsertLevel(int insert_level) {
     Flow::insert_level_ = insert_level;
 }
 
-int Flow::getBrustness() const {
-    return brustness_;
+int Flow::getBurstiness() const {
+    return burstiness_;
 }
 
 
-void Flow::setBrustness(int brustness) {
-    Flow::brustness_ = brustness;
+void Flow::setBurstiness(int brustness) {
+    Flow::burstiness_ = brustness;
 }

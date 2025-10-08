@@ -1,6 +1,7 @@
 set myAgent "Agent/TCP/FullTcp/Sack/SolTCP";
 # set switchAlg "DropTail"
-set bottleneckAlg "GearboxOneLevel"
+# set bottleneckAlg "GearboxOneLevel"
+set bottleneckAlg "GearboxTwoLevels"
 #set bottleneckAlg "HRCCPL"
 # set bottleneckAlg "DropTail"
 set hybrid 0

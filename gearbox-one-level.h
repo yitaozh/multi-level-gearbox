@@ -7,15 +7,15 @@
 #include <string>
 #include <map>
 
-static constexpr int SET_NUMBER = 100;
-static constexpr int SET_GRANULARITY = 10;       // TimeStamp Range of each queue set (level.cc)
-static constexpr int DEFAULT_VOLUME = 1000;
-static constexpr int DEFAULT_WEIGHT = 1;         // 01032019 Peixuan default weight_
-static constexpr int DEFAULT_BRUSTNESS = 10000;    // 01032019 Peixuan default brustness_
+static const int SET_NUMBER = 100;
+static const int SET_GRANULARITY = 10;       // TimeStamp Range of each queue set (level.cc)
+static const int NUM_LEVELS = 1000;
+static const int DEFAULT_WEIGHT = 1;         // 01032019 Peixuan default weight_
+static const int DEFAULT_BURSTINESS = 10000;    // 01032019 Peixuan default burstiness_
 
 class GearboxOneLevel : public Queue {
 private:
-    int volume_;                     // num of levels_ in scheduler
+    int num_levels_;                     // num of levels_ in scheduler
     int current_round_;           // current Round
     int pkt_count_;           // packet count
     Level levels_[SET_NUMBER];        // same queue number with HCS
@@ -34,6 +34,8 @@ public:
     Packet* deque();
     int calTheoreticalDepartureRound(hdr_ip*, int);
     int calInsertLevel(int, int);
+    Flow* getFlowPtr(int fid);
+    Flow* insertNewFlowPtr(int fid, int weight, int burstiness);
 };
 
 #endif

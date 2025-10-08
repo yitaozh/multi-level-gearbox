@@ -14,8 +14,16 @@ Make and run test
 
 ```bash
 # under ns-allinone-2.34/ns-2.34
-make clean && make -j8
+make clean && make
 ```
+
+Run with bash script
+
+```bash
+bash tcp-HRCC.sh 100 0.5 Topology-8hosts-NSDI21.tcl
+```
+
+Run directly with ns(recommended)
 
 ```bash
 # under the project root directory

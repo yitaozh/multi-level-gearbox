@@ -13,18 +13,18 @@ class Flow {
 private:
     int flowid_;
     float weight_;
-    int brustness_; // 07102019 Peixuan: control flow brustness level
-    static const int DEFAULT_BRUSTNESS = 1000;  // 07102019 Peixuan: control flow brustness level
+    int burstiness_;
+    static const int DEFAULT_BURSTINESS = 1000;
 
     int last_departure_round_;
     int insert_level_;
 public:
     Flow(int id, float weight);
-    Flow(int id, float weight, int brustness); // 07102019 Peixuan: control flow brustness level
+    Flow(int id, float weight, int burstiness); // 07102019 Peixuan: control flow burstiness level
 
     float getWeight() const;
-    int getBrustness() const; // 07102019 Peixuan: control flow brustness level
-    void setBrustness(int brustness); // 07102019 Peixuan: control flow brustness level
+    int getBurstiness() const; // 07102019 Peixuan: control flow burstiness level
+    void setBurstiness(int burstiness); // 07102019 Peixuan: control flow burstiness level
     int getLastDepartureRound() const;
     void setLastDepartureRound(int last_departure_round_);
     void setWeight(float weight);

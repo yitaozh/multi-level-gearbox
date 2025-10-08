@@ -12,12 +12,11 @@ public:
 	}
 } class_Gearbox_one;
 
-GearboxOneLevel::GearboxOneLevel():GearboxOneLevel(DEFAULT_VOLUME) { }
+GearboxOneLevel::GearboxOneLevel():GearboxOneLevel(NUM_LEVELS) { }
 
-GearboxOneLevel::GearboxOneLevel(int volume_) {
-    // fprintf(stderr, "Created new Gearbox_one instance with volumn = %d\n", volume_); // Debug: Peixuan 07062019
-    this->volume_ = volume_;
-
+GearboxOneLevel::GearboxOneLevel(int num_levels_) {
+    // fprintf(stderr, "Created new Gearbox_one instance with volumn = %d\n", num_levels_); // Debug: Peixuan 07062019
+    this->num_levels_ = num_levels_;
     current_round_ = 0;
     pkt_count_ = 0;
 }
@@ -39,7 +38,7 @@ void GearboxOneLevel::enque(Packet* packet) {
         return;
     }
    
-    int brustness = flow->getBrustness();
+    int brustness = flow->getBurstiness();
     if ((departure_round - current_round_) >= brustness) {
         fprintf(stderr, "Exceeds maximum brustness, drop the packet from Flow %d\n", iph->saddr()); // Debug: Peixuan 07072019
         drop(packet);
@@ -49,8 +48,6 @@ void GearboxOneLevel::enque(Packet* packet) {
     flow->setLastDepartureRound(departure_round);
 
     int set_id = (departure_round / SET_GRANULARITY) % SET_NUMBER;
-    // fprintf(stderr, "departure_round/SET_GRANULARITY = %d/%d = %d\n", departure_round, SET_GRANULARITY, (departure_round/SET_GRANULARITY)); // Debug: Peixuan 07072019
-    // fprintf(stderr, "Enqueue Set %d\n", set_id); // Debug: Peixuan 07072019
     int fifo_granularity = SET_GRANULARITY / 10;
     levels_[set_id].enque(packet, (departure_round / fifo_granularity) % SET_GRANULARITY);
     pkt_count_++;
@@ -58,8 +55,6 @@ void GearboxOneLevel::enque(Packet* packet) {
 
 // Peixuan: This can be replaced by any other algorithms
 int GearboxOneLevel::calTheoreticalDepartureRound(hdr_ip* iph, int pkt_size) {
-    // fprintf(stderr, "$$$$$Calculate Departure Round at VC = %d\n", current_round_); // Debug: Peixuan 07062019
-
     Flow* flow = this->getFlowPtr(iph->flowid()); // Peixuan 04212020 fid
 
     float weight = flow->getWeight();
@@ -111,9 +106,9 @@ void GearboxOneLevel::runRound() {
     }
 }
 
-Flow* GearboxOneLevel::getFlowPtr(int fid) { // Peixuan 04212020
+Flow* GearboxOneLevel::getFlowPtr(int fid) {
     if (flowmap_.find(fid) == flowmap_.end()) {
-        return insertNewFlowPtr(fid, DEFAULT_WEIGHT, DEFAULT_BRUSTNESS); // Peixuan 04212020
+        return insertNewFlowPtr(fid, DEFAULT_WEIGHT, DEFAULT_BURSTINESS); // Peixuan 04212020
     }
     return flowmap_[fid];
 }

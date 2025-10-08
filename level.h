@@ -6,19 +6,20 @@
 #define LEVEL_H
 
 #include "queue.h"
-using namespace std;
+#include <vector>
+
+static const int DEFAULT_VOLUMN = 10;
 
 class Level {
 private:
-    static const int DEFAULT_VOLUME = 10;
-    int volume_;                         // num of fifos in one level
+    int volumn_;                         // num of fifos in one level
     int current_index_;                   // current serve index
-    PacketQueue *fifos_[DEFAULT_VOLUME];
-
+    std::vector<PacketQueue*> fifos_;
     int pkt_cnt_;
 
 public:
     Level();
+    Level(int);
     void enque(Packet* packet, int index);
     Packet* deque();
     int sizeAtIndex(int index);

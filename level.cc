@@ -4,10 +4,13 @@
 
 #include "level.h"
 
-Level::Level(): volume_(DEFAULT_VOLUME), current_index_(0) {
+Level::Level(): Level(DEFAULT_VOLUMN) {
+}
 
-    for (int i = 0; i < volume_; i++) {
-        fifos_[i] = new PacketQueue;
+Level::Level(int volumn): volumn_(volumn), current_index_(0) {
+
+    for (int i = 0; i < volumn_; i++) {
+        fifos_.push_back(new PacketQueue());
     }
 }
 
@@ -51,7 +54,7 @@ void Level::setCurrentIndex(int index) {
 }
 
 void Level::getAndIncrementIndex() {
-    if (current_index_ + 1 < volume_) {
+    if (current_index_ + 1 < volumn_) {
         current_index_++;
     } else {
         current_index_ = 0;
