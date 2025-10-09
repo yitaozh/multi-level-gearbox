@@ -1,14 +1,19 @@
-#ifndef QUEUE_GEARBOX_ONE_LEVEL_H
-#define QUEUE_GEARBOX_ONE_LEVEL_H
+#ifndef QUEUE_GEARBOX_THREE_LEVELS_H
+#define QUEUE_GEARBOX_THREE_LEVELS_H
 
 #include "level.h"
 #include "flow.h"
 #include <deque>
 #include <map>
 
-static const int NUM_LEVELS = 1;
+static const int NUM_LEVELS = 4;
 static const int HIGHEST_LEVEL = NUM_LEVELS - 1;
-static const int FIFO_PER_LEVEL = 32;
+static const int FIFO_PER_LEVEL = 8;
+static const int POWERS[NUM_LEVELS] = {1, FIFO_PER_LEVEL, FIFO_PER_LEVEL * FIFO_PER_LEVEL,
+                                        FIFO_PER_LEVEL * FIFO_PER_LEVEL * FIFO_PER_LEVEL};
+
+// TODO(yitao): not implemented for now
+static const int STEP_DOWN_FIFO = 4;
 /**
  * A new flow can send a certain amount of data (related to the value 1000) before 
  * it is considered "non-bursty" and its packets are placed in lower priority queues,
@@ -16,15 +21,16 @@ static const int FIFO_PER_LEVEL = 32;
  */
 static const int DEFAULT_BURSTINESS = 1000;
 static const int WEIGHT_LIST_LEN = 4;
-static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 1, 1, 1};
+static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 2, 3, 5};
 
-class GearboxOneLevel : public Queue {
+class GearboxFourLevels : public Queue {
 private:
     int num_levels_; 
     int current_round_;
     int pkt_count_;
 
     std::vector<Level> levels_;
+    std::vector<Level> levelsB;
 
     std::deque<Packet*> pkt_cur_round_;
     typedef std::map<int, Flow*> FlowMap;
@@ -40,10 +46,11 @@ private:
     void calInsertLevel(int, bool&, int&, int&);
     int calTheoreticalDepartureRound(hdr_ip*, int);
     void serveHighestLevel();
+    void serveLowerLevels();
 
 public:
-    GearboxOneLevel();
-    explicit GearboxOneLevel(int);
+    GearboxFourLevels();
+    explicit GearboxFourLevels(int);
     void enque(Packet*);
     Packet* deque();
     int calInsertLevel(int, int);

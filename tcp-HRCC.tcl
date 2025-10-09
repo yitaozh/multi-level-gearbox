@@ -1,7 +1,11 @@
 set myAgent "Agent/TCP/FullTcp/Sack/SolTCP";
 # set switchAlg "DropTail"
+# TODO(yitao): Add bottlenectAlg options
 # set bottleneckAlg "GearboxOneLevel"
-set bottleneckAlg "GearboxTwoLevels"
+# set bottleneckAlg "GearboxTwoLevels"
+set bottleneckAlg "GearboxThreeLevels"
+# set bottleneckAlg "GearboxFourLevels"
+# set bottleneckAlg "GearboxFiveLevels"
 #set bottleneckAlg "HRCCPL"
 # set bottleneckAlg "DropTail"
 set hybrid 0
@@ -227,13 +231,13 @@ source [file normalize $top]
 puts "Initial agent creation done";flush stdout
 puts "Simulation started!"
 
-proc finish {} {
-	global ns
-    puts "== finish at Date: [clock format [clock seconds]] =="
-    $ns flush-trace
-    exit 0
-}
+# proc finish {} {
+# 	global ns
+#     puts "== finish at Date: [clock format [clock seconds]] =="
+#     $ns flush-trace
+#     exit 0
+# }
 
-$ns at $sim_end "finish"
+# $ns at $sim_end "finish"
 $ns run
 

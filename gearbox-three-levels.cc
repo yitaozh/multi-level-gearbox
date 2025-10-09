@@ -1,21 +1,21 @@
 #include <cmath>
 #include <sstream>
 
-#include "gearbox-two-levels.h"
+#include "gearbox-three-levels.h"
 
-static class GearboxTwoLevelsClass : public TclClass {
+static class GearboxThreeLevelsClass : public TclClass {
 public:
-        GearboxTwoLevelsClass() : TclClass("Queue/GearboxTwoLevels") {}
+        GearboxThreeLevelsClass() : TclClass("Queue/GearboxThreeLevels") {}
         TclObject* create(int, const char*const*) {
-            // fprintf(stderr, "Created new TCL gearbox two levels_ instance\n");
-	        return (new GearboxTwoLevels);
+            // fprintf(stderr, "Created new TCL HCSPL instance\n"); // Debug: Peixuan 07062019
+	        return (new GearboxThreeLevels);
 	}
 } class_hierarchical_queue;
 
-GearboxTwoLevels::GearboxTwoLevels():GearboxTwoLevels(NUM_LEVELS) {
+GearboxThreeLevels::GearboxThreeLevels():GearboxThreeLevels(NUM_LEVELS) {
 }
 
-GearboxTwoLevels::GearboxTwoLevels(int num_levels) : num_levels_(num_levels) {
+GearboxThreeLevels::GearboxThreeLevels(int num_levels) : num_levels_(num_levels) {
     // fprintf(stderr, "Created new gearbox two levels_ instance with volumn = %d\n", num_levels_);
     for (int i = 0; i < num_levels_; i++) {
         levels_.push_back(Level(FIFO_PER_LEVEL));
@@ -26,7 +26,7 @@ GearboxTwoLevels::GearboxTwoLevels(int num_levels) : num_levels_(num_levels) {
     global_last_departure_round_ = 0;
 }
 
-void GearboxTwoLevels::enque(Packet* packet) {   
+void GearboxThreeLevels::enque(Packet* packet) {   
     
     hdr_ip* iph = hdr_ip::access(packet);
     int pkt_size = packet->hdrlen_ + packet->datalen();
@@ -70,7 +70,7 @@ void GearboxTwoLevels::enque(Packet* packet) {
     pkt_count_++;
 }
 
-int GearboxTwoLevels::calTheoreticalDepartureRound(hdr_ip* iph, int pkt_size) {
+int GearboxThreeLevels::calTheoreticalDepartureRound(hdr_ip* iph, int pkt_size) {
     Flow* flow = getFlowPtr(iph->flowid());
 
     int last_departure_round = flow->getLastDepartureRound();
@@ -81,7 +81,7 @@ int GearboxTwoLevels::calTheoreticalDepartureRound(hdr_ip* iph, int pkt_size) {
     return departure_round;
 }
 
-void GearboxTwoLevels::calInsertLevel(int departure_round, bool &inserting_backup, int &insert_level, int& insert_index) {
+void GearboxThreeLevels::calInsertLevel(int departure_round, bool &inserting_backup, int &insert_level, int& insert_index) {
     int current_round = current_round_;
     for (int i = 0; i < insert_level; i++) {
         current_round = current_round / FIFO_PER_LEVEL;
@@ -100,7 +100,8 @@ void GearboxTwoLevels::calInsertLevel(int departure_round, bool &inserting_backu
     insert_index = departure_round % FIFO_PER_LEVEL;
 }
 
-Packet* GearboxTwoLevels::deque() {
+
+Packet* GearboxThreeLevels::deque() {
     if (pkt_count_ == 0) {
         // fprintf(stderr, "Scheduler Empty\n");
         return 0;
@@ -127,14 +128,14 @@ Packet* GearboxTwoLevels::deque() {
 }
 
 // Peixuan: now we only call this function to get the departure packet in the next round
-void GearboxTwoLevels::runRound() {
+void GearboxThreeLevels::runRound() {
 
     serveHighestLevel();
 
     serveLowerLevels();
 }
 
-void GearboxTwoLevels::serveHighestLevel() {
+void GearboxThreeLevels::serveHighestLevel() {
     int power = POWERS[HIGHEST_LEVEL];
     int index = current_round_ / power % FIFO_PER_LEVEL;
     int divider = power - current_round_ % power;
@@ -150,7 +151,7 @@ void GearboxTwoLevels::serveHighestLevel() {
     }
 }
 
-void GearboxTwoLevels::serveLowerLevels() {
+void GearboxThreeLevels::serveLowerLevels() {
     int level = NUM_LEVELS - 2;
     while (level >= 0) {
         int power = POWERS[level];
@@ -178,14 +179,14 @@ void GearboxTwoLevels::serveLowerLevels() {
 }
 
 
-Flow* GearboxTwoLevels::getFlowPtr(int fid) {
+Flow* GearboxThreeLevels::getFlowPtr(int fid) {
     if (flowmap_.find(fid) == flowmap_.end()) {
         return insertNewFlowPtr(fid, WEIGHT_LIST[fid % WEIGHT_LIST_LEN], DEFAULT_BURSTINESS);
     }
     return flowmap_[fid];
 }
 
-Flow* GearboxTwoLevels::insertNewFlowPtr(int fid, int weight, int burstiness) {
+Flow* GearboxThreeLevels::insertNewFlowPtr(int fid, int weight, int burstiness) {
     Flow* flow = new Flow(fid, weight, burstiness);
     flowmap_[fid] = flow;
     return flow;

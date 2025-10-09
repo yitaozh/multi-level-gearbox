@@ -102,6 +102,7 @@ for { set pod 0 } { $pod < $num_pod } { incr pod } {
             # } else {
 			# 	set alg DropTail
 			# }
+			# set alg $bottleneckAlg
 			$ns duplex-link $host($pod,$edge,$index) $edg($pod,$edge) [expr $hostedg_rate]Gb $bottoneck_delay $bottleneckAlg
 		}
 	}
@@ -114,7 +115,7 @@ Queue/RPQ set margin $margin_
 for { set pod 0 } { $pod < $num_pod } { incr pod } {
 	for { set edge 0 } { $edge < $num_edg_per_pod } { incr edge } {
 		for { set index 0 } { $index < $num_agr_per_pod } { incr index } {
-			#$ns duplex-link $edg($pod,$edge) $agr($pod,$index) [expr $edgeagg_rate]Gb $other_link_delay $switchAlg
+			# set bottleneckAlg DropTail
 			$ns duplex-link $edg($pod,$edge) $agr($pod,$index) [expr $edgeagg_rate]Gb $other_link_delay $bottleneckAlg
 		}
 	}
@@ -124,7 +125,7 @@ for { set pod 0 } { $pod < $num_pod } { incr pod } {
 	for { set index 0 } { $index < $num_agr_per_pod } { incr index } {
 		for { set port 0 } { $port < [expr $num_ports/2] } { incr port } {
 			set core_index [expr ($index*$num_ports/2)+$port]
-			#$ns duplex-link $core($core_index) $agr($pod,$index) [expr $aggcore_rate]Gb $other_link_delay $switchAlg
+			# set bottleneckAlg DropTail
 			$ns duplex-link $core($core_index) $agr($pod,$index) [expr $aggcore_rate]Gb $other_link_delay $bottleneckAlg
 		}
 	}

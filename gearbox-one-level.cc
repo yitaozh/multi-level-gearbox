@@ -7,18 +7,22 @@ static class GearboxOneLevelClass : public TclClass {
 public:
         GearboxOneLevelClass() : TclClass("Queue/GearboxOneLevel") {}
         TclObject* create(int, const char*const*) {
-            // fprintf(stderr, "Created new TCL GearboxOneLevel instance\n"); // Debug: Peixuan 07062019
+            // fprintf(stderr, "Created new TCL HCSPL instance\n"); // Debug: Peixuan 07062019
 	        return (new GearboxOneLevel);
 	}
-} class_Gearbox_one;
+} class_hierarchical_queue;
 
-GearboxOneLevel::GearboxOneLevel():GearboxOneLevel(NUM_LEVELS) { }
+GearboxOneLevel::GearboxOneLevel():GearboxOneLevel(NUM_LEVELS) {
+}
 
-GearboxOneLevel::GearboxOneLevel(int num_levels_) {
-    // fprintf(stderr, "Created new Gearbox_one instance with volumn = %d\n", num_levels_); // Debug: Peixuan 07062019
-    this->num_levels_ = num_levels_;
+GearboxOneLevel::GearboxOneLevel(int num_levels) : num_levels_(num_levels) {
+    // fprintf(stderr, "Created new gearbox two levels_ instance with volumn = %d\n", num_levels_);
+    for (int i = 0; i < num_levels_; i++) {
+        levels_.push_back(Level(FIFO_PER_LEVEL));
+    }
     current_round_ = 0;
     pkt_count_ = 0;
+    global_last_departure_round_ = 0;
 }
 
 void GearboxOneLevel::enque(Packet* packet) {   
@@ -27,57 +31,53 @@ void GearboxOneLevel::enque(Packet* packet) {
     int pkt_size = packet->hdrlen_ + packet->datalen();
 
     int departure_round = calTheoreticalDepartureRound(iph, pkt_size);
+    global_last_departure_round_ = max(global_last_departure_round_, departure_round);
 
-    Flow* flow = flowmap_[iph->flowid()];
-    int insert_level = 0;
-
-    // one level gearbox, each level only handles 10 virtual clock
-    if ((departure_round - current_round_) >= SET_GRANULARITY * SET_NUMBER) {
-        fprintf(stderr, "Exceeds maximum round, drop the packet from Flow %d\n", iph->saddr()); // Debug: Peixuan 07072019
+    Flow* flow = getFlowPtr(iph->flowid());
+    int burstiness = flow->getBurstiness();
+    if ((departure_round - current_round_) >= burstiness) {
+        // fprintf(stderr, "Exceeds maximum brustness, drop the packet from Flow %d\n", iph->saddr()); //
         drop(packet);
-        return;
-    }
-   
-    int brustness = flow->getBurstiness();
-    if ((departure_round - current_round_) >= brustness) {
-        fprintf(stderr, "Exceeds maximum brustness, drop the packet from Flow %d\n", iph->saddr()); // Debug: Peixuan 07072019
-        drop(packet);
-        return;
+        return; 
     }
 
+    int insert_index = departure_round % FIFO_PER_LEVEL;
     flow->setLastDepartureRound(departure_round);
 
-    int set_id = (departure_round / SET_GRANULARITY) % SET_NUMBER;
-    int fifo_granularity = SET_GRANULARITY / 10;
-    levels_[set_id].enque(packet, (departure_round / fifo_granularity) % SET_GRANULARITY);
+    levels_[HIGHEST_LEVEL].enque(packet, insert_index);
+    // fprintf(stderr, "[Q=%p] Enqueue Flow %d Packet at Level %d, Index %d, departure_round: %d at round: %d\n", 
+    //     this, iph->flowid(), HIGHEST_LEVEL, insert_index, departure_round, current_round_);
     pkt_count_++;
 }
 
-// Peixuan: This can be replaced by any other algorithms
 int GearboxOneLevel::calTheoreticalDepartureRound(hdr_ip* iph, int pkt_size) {
-    Flow* flow = this->getFlowPtr(iph->flowid()); // Peixuan 04212020 fid
+    Flow* flow = getFlowPtr(iph->flowid());
 
-    float weight = flow->getWeight();
     int last_departure_round = flow->getLastDepartureRound();
     last_departure_round = max(current_round_, last_departure_round);
 
-    int departure_round = (int)(last_departure_round + weight); // 07072019 Peixuan: basic test
+    int departure_round = last_departure_round + flow->getWeight();
 
     return departure_round;
 }
 
 Packet* GearboxOneLevel::deque() {
-
-    // fprintf(stderr, "Start Dequeue\n"); // Debug: Peixuan 07062019
-
     if (pkt_count_ == 0) {
         // fprintf(stderr, "Scheduler Empty\n");
         return 0;
     }
 
-    while (pkt_cur_round_.empty()) {
-        runRound();
-        current_round_++;
+    if (pkt_cur_round_.empty()) {
+        while (pkt_cur_round_.empty()) {
+            runRound();
+            // fprintf(stderr, "[Q=%p] Round %d passed with packet number: %d, current queue size: %d, last enqued packet: %d\n", 
+            //     this, current_round_, pkt_cur_round_.size(), pkt_count_, global_last_departure_round_);
+            current_round_++;
+            // if (current_round_ > 400) {
+            //     exit(1);
+            // }
+        }
+        current_round_--;
     }
 
     Packet *p = pkt_cur_round_.front();
@@ -85,36 +85,34 @@ Packet* GearboxOneLevel::deque() {
 
     pkt_count_--;
     return p;
-
 }
 
 // Peixuan: now we only call this function to get the departure packet in the next round
 void GearboxOneLevel::runRound() {
+    serveHighestLevel();
+}
 
-    int cur_set = (current_round_ / SET_GRANULARITY) % SET_NUMBER;    // Find the current serving set
-    int index = current_round_ % SET_GRANULARITY;
-    // fprintf(stderr, "Serving Set %d\n", cur_set); // Debug: Peixuan 08022019
+void GearboxOneLevel::serveHighestLevel() {
+    int index = current_round_ % FIFO_PER_LEVEL;
 
-    if (levels_[cur_set].sizeAtIndex(index) == 0) {
-        // fprintf(stderr, "No packet at round %d\n", current_round_); // Debug: Peixuan 07062019
-        return;
-    }
-
-    while (levels_[cur_set].sizeAtIndex(index)) {
-        Packet* p = levels_[cur_set].dequeAtIndex(index);
+    while (levels_[HIGHEST_LEVEL].sizeAtIndex(index) > 0) {
+        Packet* p = levels_[HIGHEST_LEVEL].dequeAtIndex(index);
+        if (p == 0)
+            break;
+        hdr_ip* iph = hdr_ip::access(p);
         pkt_cur_round_.push_back(p);
     }
 }
 
 Flow* GearboxOneLevel::getFlowPtr(int fid) {
     if (flowmap_.find(fid) == flowmap_.end()) {
-        return insertNewFlowPtr(fid, DEFAULT_WEIGHT, DEFAULT_BURSTINESS); // Peixuan 04212020
+        return insertNewFlowPtr(fid, WEIGHT_LIST[fid % WEIGHT_LIST_LEN], DEFAULT_BURSTINESS);
     }
     return flowmap_[fid];
 }
 
-Flow* GearboxOneLevel::insertNewFlowPtr(int fid, int weight, int brustness) { // Peixuan 04212020
-    Flow* flow = new Flow(fid, weight, brustness);
-    this->flowmap_[fid] = flow;
+Flow* GearboxOneLevel::insertNewFlowPtr(int fid, int weight, int burstiness) {
+    Flow* flow = new Flow(fid, weight, burstiness);
+    flowmap_[fid] = flow;
     return flow;
 }

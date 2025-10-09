@@ -4,11 +4,10 @@
 #include "level.h"
 #include "flow.h"
 #include <deque>
-#include <string>
 #include <map>
 
 static const int NUM_LEVELS = 2;
-static const int HIGHER_LEVEL = NUM_LEVELS - 1;
+static const int HIGHEST_LEVEL = NUM_LEVELS - 1;
 static const int FIFO_PER_LEVEL = 16;
 static const int POWERS[2] = {1, FIFO_PER_LEVEL};
 
@@ -32,18 +31,15 @@ private:
     std::vector<Level> levels_;
     std::vector<Level> levelsB;
 
-    // TODO(yitao): check if we should delete this
-    // Level decadeLevel;
-
-    // bool levelServingB_[NUM_LEVELS - 1];
-
     std::deque<Packet*> pkt_cur_round_;
     typedef std::map<int, Flow*> FlowMap;
     FlowMap flowmap_;
 
+    // Debug(yitao)
+    int global_last_departure_round_;
+
 private:
     void runRound();
-    void serveUpperLevel(int);
     Flow* getFlowPtr(int fid);
     Flow* insertNewFlowPtr(int fid, int weight, int burstiness);
     void calInsertLevel(int, bool&, int&, int&);
