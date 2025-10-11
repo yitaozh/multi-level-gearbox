@@ -88,13 +88,22 @@ for { set pod 0 } { $pod < $num_pod } { incr pod } {
 Queue/RPQ set pfc_threshold_1 $pfc_thr1_host_edg
 Queue/RPQ set margin $margin_
 
+set F_pod 0
+set F_edge 0
+set F_host 0
+
 # Peixuan12102019: Q3, where is this $switchAlg defined?
 #Creating Likns b.w Edges & Hosts
 for { set pod 0 } { $pod < $num_pod } { incr pod } {
 	for { set edge 0 } { $edge < $num_edg_per_pod } { incr edge } {
 		for { set index 0 } { $index < $num_host_per_sw } { incr index } {
-			#$ns duplex-link $host($pod,$edge,$index) $edg($pod,$edge) $bottoneck_rate $bottoneck_delay $bottleneckAlg 
-			$ns duplex-link $host($pod,$edge,$index) $edg($pod,$edge) [expr $hostedg_rate]Gb $bottoneck_delay $bottleneckAlg 
+			# if { $pod==$F_pod && $edge==$F_edge && $index==$F_host } {
+            #     set alg $bottleneckAlg   ;# 只在这条链路用你的 Queue
+            # } else {
+			# 	set alg DropTail
+			# }
+			# set alg $bottleneckAlg
+			$ns duplex-link $host($pod,$edge,$index) $edg($pod,$edge) [expr $hostedg_rate]Gb $bottoneck_delay $bottleneckAlg
 		}
 	}
 }
@@ -106,8 +115,8 @@ Queue/RPQ set margin $margin_
 for { set pod 0 } { $pod < $num_pod } { incr pod } {
 	for { set edge 0 } { $edge < $num_edg_per_pod } { incr edge } {
 		for { set index 0 } { $index < $num_agr_per_pod } { incr index } {
-			#$ns duplex-link $edg($pod,$edge) $agr($pod,$index) [expr $edgeagg_rate]Gb $other_link_delay $switchAlg
-			$ns duplex-link $edg($pod,$edge) $agr($pod,$index) [expr $edgeagg_rate]Gb $other_link_delay $bottleneckAlg  
+			# set bottleneckAlg DropTail
+			$ns duplex-link $edg($pod,$edge) $agr($pod,$index) [expr $edgeagg_rate]Gb $other_link_delay $bottleneckAlg
 		}
 	}
 }
@@ -116,8 +125,8 @@ for { set pod 0 } { $pod < $num_pod } { incr pod } {
 	for { set index 0 } { $index < $num_agr_per_pod } { incr index } {
 		for { set port 0 } { $port < [expr $num_ports/2] } { incr port } {
 			set core_index [expr ($index*$num_ports/2)+$port]
-			#$ns duplex-link $core($core_index) $agr($pod,$index) [expr $aggcore_rate]Gb $other_link_delay $switchAlg
-			$ns duplex-link $core($core_index) $agr($pod,$index) [expr $aggcore_rate]Gb $other_link_delay $bottleneckAlg  
+			# set bottleneckAlg DropTail
+			$ns duplex-link $core($core_index) $agr($pod,$index) [expr $aggcore_rate]Gb $other_link_delay $bottleneckAlg
 		}
 	}
 }
@@ -208,7 +217,7 @@ for { set pod 0 } { $pod < $num_pod } { incr pod } {
 
 
 proc time_ {} {
-	puts "Date: [clock format [clock seconds]]"	
+	puts "== start at Date: [clock format [clock seconds]] == "
 }
 
 $ns at 0.9 "time_"

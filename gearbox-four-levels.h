@@ -21,7 +21,7 @@ static const int STEP_DOWN_FIFO = 4;
  */
 static const int DEFAULT_BURSTINESS = 1000;
 static const int WEIGHT_LIST_LEN = 4;
-static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 2, 3, 5};
+static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 1, 1, 1};
 
 class GearboxFourLevels : public Queue {
 private:

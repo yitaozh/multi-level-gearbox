@@ -1,3 +1,4 @@
 .vscode
 *.tr
 *out
+/results

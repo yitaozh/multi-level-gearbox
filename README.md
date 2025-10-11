@@ -17,17 +17,17 @@ Make and run test
 make clean && make
 ```
 
-Run with bash script
-
-```bash
-bash tcp-HRCC.sh 100 0.5 Topology-8hosts-NSDI21.tcl
-```
-
 Run directly with ns(recommended)
 
 ```bash
 # under the project root directory
-ns tcp-HRCC.tcl 100 0.5 Topology-8hosts-NSDI21.tcl
+ns tcp-HRCC.tcl 500 0.5 Topology-8hosts-NSDI21.tcl GearboxOneLevel
+```
+
+Run with bash script
+
+```bash
+bash tcp-HRCC.sh 500 0.5 Topology-8hosts-NSDI21.tcl
 ```
 
 ## Improvements

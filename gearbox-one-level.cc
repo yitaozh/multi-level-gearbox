@@ -25,27 +25,33 @@ GearboxOneLevel::GearboxOneLevel(int num_levels) : num_levels_(num_levels) {
     global_last_departure_round_ = 0;
 }
 
-void GearboxOneLevel::enque(Packet* packet) {   
-    
+void GearboxOneLevel::enque(Packet* packet) {
+
     hdr_ip* iph = hdr_ip::access(packet);
     int pkt_size = packet->hdrlen_ + packet->datalen();
 
     int departure_round = calTheoreticalDepartureRound(iph, pkt_size);
-    global_last_departure_round_ = max(global_last_departure_round_, departure_round);
+
+    if (departure_round - current_round_ >= FIFO_PER_LEVEL) {
+        drop(packet);
+        return;
+    }
 
     Flow* flow = getFlowPtr(iph->flowid());
     int burstiness = flow->getBurstiness();
     if ((departure_round - current_round_) >= burstiness) {
         // fprintf(stderr, "Exceeds maximum brustness, drop the packet from Flow %d\n", iph->saddr()); //
         drop(packet);
-        return; 
+        return;
     }
+
+    global_last_departure_round_ = max(global_last_departure_round_, departure_round);
 
     int insert_index = departure_round % FIFO_PER_LEVEL;
     flow->setLastDepartureRound(departure_round);
 
     levels_[HIGHEST_LEVEL].enque(packet, insert_index);
-    // fprintf(stderr, "[Q=%p] Enqueue Flow %d Packet at Level %d, Index %d, departure_round: %d at round: %d\n", 
+    // fprintf(stderr, "[Q=%p] Enqueue Flow %d Packet at Level %d, Index %d, departure_round: %d at round: %d\n",
     //     this, iph->flowid(), HIGHEST_LEVEL, insert_index, departure_round, current_round_);
     pkt_count_++;
 }
@@ -70,7 +76,7 @@ Packet* GearboxOneLevel::deque() {
     if (pkt_cur_round_.empty()) {
         while (pkt_cur_round_.empty()) {
             runRound();
-            // fprintf(stderr, "[Q=%p] Round %d passed with packet number: %d, current queue size: %d, last enqued packet: %d\n", 
+            // fprintf(stderr, "[Q=%p] Round %d passed with packet number: %d, current queue size: %d, last enqued packet: %d\n",
             //     this, current_round_, pkt_cur_round_.size(), pkt_count_, global_last_departure_round_);
             current_round_++;
             // if (current_round_ > 400) {
