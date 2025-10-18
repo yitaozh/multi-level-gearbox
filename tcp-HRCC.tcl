@@ -7,6 +7,11 @@ set bottleneckAlg [lindex $argv 3]
 # set bottleneckAlg "GearboxThreeLevels"
 # set bottleneckAlg "GearboxFourLevels"
 # set bottleneckAlg "GearboxFiveLevels"
+# set bottleneckAlg "GearboxPLFL1Level"
+# set bottleneckAlg "GearboxPLFL2Levels"
+# set bottleneckAlg "GearboxPLFL3Levels"
+# set bottleneckAlg "GearboxPLFL4Levels"
+# set bottleneckAlg "GearboxPLFL5Levels"
 #set bottleneckAlg "HRCCPL"
 # set bottleneckAlg "DropTail"
 set hybrid 0
@@ -59,15 +64,15 @@ set qsize1_host_edg $size_queue
 #set Elp_win_init_ 40;#50#68;#BDP #[lindex $argv 5]
 set Elp_maxcwnd [expr $size_queue-1];#[expr $Elp_win_init+1] ;#25,68,149;#[lindex $argv 6]
 
-if {$bottleneckAlg eq "GearboxOneLevel"} {
+if {$bottleneckAlg eq "GearboxOneLevel" || $bottleneckAlg eq "GearboxPLFL1Level"} {
     set suffix "1x32"
-} elseif {$bottleneckAlg eq "GearboxTwoLevels"} {
+} elseif {$bottleneckAlg eq "GearboxTwoLevels" || $bottleneckAlg eq "GearboxPLFL2Levels"} {
 	set suffix "2x16"
-} elseif {$bottleneckAlg eq "GearboxThreeLevels"} {
+} elseif {$bottleneckAlg eq "GearboxThreeLevels" || $bottleneckAlg eq "GearboxPLFL3Levels"} {
 	set suffix "3x10"
-} elseif {$bottleneckAlg eq "GearboxFourLevels"} {
+} elseif {$bottleneckAlg eq "GearboxFourLevels" || $bottleneckAlg eq "GearboxPLFL4Levels"} {
 	set suffix "4x8"
-} elseif {$bottleneckAlg eq "GearboxFiveLevels"} {
+} elseif {$bottleneckAlg eq "GearboxFiveLevels" || $bottleneckAlg eq "GearboxPLFL5Levels"} {
 	set suffix "5x6"
 }
 
