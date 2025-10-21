@@ -68,11 +68,11 @@ if {$bottleneckAlg eq "GearboxOneLevel" || $bottleneckAlg eq "GearboxPLFL1Level"
     set suffix "1x32"
 } elseif {$bottleneckAlg eq "GearboxTwoLevels" || $bottleneckAlg eq "GearboxPLFL2Levels"} {
 	set suffix "2x16"
-} elseif {$bottleneckAlg eq "GearboxThreeLevels" || $bottleneckAlg eq "GearboxPLFL3Levels"} {
+} elseif {$bottleneckAlg eq "GearboxThreeLevels" || $bottleneckAlg eq "GearboxPLFL3Levels" || $bottleneckAlg eq "GearboxPLFL3LevelsOriginal"} {
 	set suffix "3x10"
 } elseif {$bottleneckAlg eq "GearboxFourLevels" || $bottleneckAlg eq "GearboxPLFL4Levels"} {
 	set suffix "4x8"
-} elseif {$bottleneckAlg eq "GearboxFiveLevels" || $bottleneckAlg eq "GearboxPLFL5Levels"} {
+} elseif {$bottleneckAlg eq "GearboxFiveLevels" || $bottleneckAlg eq "GearboxPLFL5Levels" || $bottleneckAlg eq "GearboxPLFL5LevelsOriginal"} {
 	set suffix "5x6"
 }
 

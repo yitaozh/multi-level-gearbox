@@ -25,6 +25,12 @@ Gearbox_pl_fid_5levels::Gearbox_pl_fid_5levels(int volume) {
     //12132019 Peixuan
     typedef std::map<string, Flow*> FlowMap;
     FlowMap flowMap;
+        for (int i = 0; i < DEFAULT_VOLUME; i++) {
+        levels.push_back(Level(FIFO_PER_LEVEL));
+        if (i > 0) {
+            levelsB.push_back(Level(FIFO_PER_LEVEL));
+        }
+    }
 
     ///fprintf(stderr, "Gearbox has: %d levels, %d fifos in level 0\n", sizeof(levels)/sizeof(levels[0]), levels[0].size()); // Debug: Peixuan 01072020
     ///fprintf(stderr, "Gearbox has: %d fifos in level 1, %d fifos in level 2, %d fifos in level 3, %d fifos in level 4\n", levels[1].size(), levels[2].size(), levels[3].size(), levels[4].size()); // Debug: Peixuan 01072020

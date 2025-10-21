@@ -1,22 +1,22 @@
 #include <cmath>
 #include <sstream>
 
-#include "Gearbox_pl_fid_flex_4level.h"
+#include "Gearbox_pl_fid_flex_5level_origin.h"
 
-static class Gearbox_pl_fid_flex_4levelsClass : public TclClass {
+static class Gearbox_pl_fid_flex_5levels_originClass : public TclClass {
 public:
-        Gearbox_pl_fid_flex_4levelsClass() : TclClass("Queue/GearboxPLFL4Levels") {}
+        Gearbox_pl_fid_flex_5levels_originClass() : TclClass("Queue/GearboxPLFL5LevelsOriginal") {}
         TclObject* create(int, const char*const*) {
             // fprintf(stderr, "Created new TCL HCSPL instance\n"); // Debug: Peixuan 07062019
-	        return (new Gearbox_pl_fid_4levels);
+	        return (new Gearbox_pl_fid_5levels_origin);
 	}
 } class_hierarchical_queue;
 
-Gearbox_pl_fid_4levels::Gearbox_pl_fid_4levels():Gearbox_pl_fid_4levels(DEFAULT_VOLUME) {
+Gearbox_pl_fid_5levels_origin::Gearbox_pl_fid_5levels_origin():Gearbox_pl_fid_5levels_origin(DEFAULT_VOLUME) {
     // fprintf(stderr, "Created new HCSPL instance\n"); // Debug: Peixuan 07062019
 }
 
-Gearbox_pl_fid_4levels::Gearbox_pl_fid_4levels(int volume) {
+Gearbox_pl_fid_5levels_origin::Gearbox_pl_fid_5levels_origin(int volume) {
     // fprintf(stderr, "Created new HCSPL instance with volumn = %d\n", volume); // Debug: Peixuan 07062019
     this->volume = volume;
     currentRound = 0;
@@ -44,7 +44,7 @@ Gearbox_pl_fid_4levels::Gearbox_pl_fid_4levels(int volume) {
     //TestIntMap testIntMap;
 }
 
-void Gearbox_pl_fid_4levels::setCurrentRound(int currentRound) {
+void Gearbox_pl_fid_5levels_origin::setCurrentRound(int currentRound) {
     ///fprintf(stderr, "Set Current Round: %d\n", currentRound); // Debug: Peixuan 07062019
     this->currentRound = currentRound;
 
@@ -52,19 +52,19 @@ void Gearbox_pl_fid_4levels::setCurrentRound(int currentRound) {
     level1ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
     level2ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
 
-    //level3ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
-    //level4ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
+    level3ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
+    level4ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
 
     ///fprintf(stderr, "Set Round: %d, level 0 serving B = %d, level 1 serving B = %d.\n", currentRound, level0ServingB, level1ServingB); // Debug: Peixuan 07062019
 
 }
 
-void Gearbox_pl_fid_4levels::setPktCount(int pktCount) {
+void Gearbox_pl_fid_5levels_origin::setPktCount(int pktCount) {
     ///fprintf(stderr, "Set Packet Count: %d\n", pktCount); // Debug: Peixuan 07072019
     this->pktCount = pktCount;
 }
 
-void Gearbox_pl_fid_4levels::enque(Packet* packet) {
+void Gearbox_pl_fid_5levels_origin::enque(Packet* packet) {
 
     hdr_ip* iph = hdr_ip::access(packet);
     int pkt_size = packet->hdrlen_ + packet->datalen();
@@ -126,13 +126,13 @@ void Gearbox_pl_fid_4levels::enque(Packet* packet) {
     int level1InsertingB = ((int)(departureRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
 
     int level2InsertingB = ((int)(departureRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
-    //int level3InsertingB = ((int)(departureRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
+    int level3InsertingB = ((int)(departureRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
 
     // More levels
 
     ///fprintf(stderr, "Level 3 insert B: %d, Level 2 insert B: %d, Level 1 insert B: %d, Level 0 insert B: %d\n", level3InsertingB, level2InsertingB, level1InsertingB, level0InsertingB); // Debug: Peixuan 07072019
 
-    /*if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) > 1 || insertLevel == 4) {
+    if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) > 1 || insertLevel == 4) {
         /////fprintf(stderr, "Enqueue Level 2\n"); // Debug: Peixuan 07072019
         if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL == STEP_DOWN_FIFO) {
             currFlow->setInsertLevel(3);
@@ -147,10 +147,10 @@ void Gearbox_pl_fid_4levels::enque(Packet* packet) {
             levels[4].enque(packet, departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL);
             ///fprintf(stderr, "Enqueue Level 4, regular FIFO, fifo %d\n", departureRound / (4*4*4*4) % 4); // Debug: Peixuan 07072019
         }
-    } else */
-
-    if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) > 1 || insertLevel == 3) {
-        if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL == STEP_DOWN_FIFO) {
+    } else if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) > 1 || insertLevel == 3) {
+        if (!level3InsertingB) {
+            /////fprintf(stderr, "Enqueue Level 1\n"); // Debug: Peixuan 07072019
+            if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL == STEP_DOWN_FIFO) {
                 currFlow->setInsertLevel(2);
                 //this->updateFlowPtr(iph->saddr(), iph->daddr(),currFlow);  //12182019 Peixuan
                 this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
@@ -163,6 +163,22 @@ void Gearbox_pl_fid_4levels::enque(Packet* packet) {
                 levels[3].enque(packet, departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL);
                 ///fprintf(stderr, "Enqueue Level 3, regular FIFO, fifo %d\n", departureRound / (4*4*4) % 4); // Debug: Peixuan 07072019
             }
+        } else {
+            /////fprintf(stderr, "Enqueue Level B 1\n"); // Debug: Peixuan 07072019
+            if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL == STEP_DOWN_FIFO) {
+                currFlow->setInsertLevel(2);
+                //this->updateFlowPtr(iph->saddr(), iph->daddr(),currFlow);  //12182019 Peixuan
+                this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
+                thirdLevelB.enque(packet, departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL);
+                ///fprintf(stderr, "Enqueue Level B 3, third FIFO, fifo %d\n", departureRound / (4*4) % 4); // Debug: Peixuan 07072019
+            } else {
+                currFlow->setInsertLevel(3);
+                //this->updateFlowPtr(iph->saddr(), iph->daddr(),currFlow);  //12182019 Peixuan
+                this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
+                levelsB[3].enque(packet, departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL);
+                ///fprintf(stderr, "Enqueue Level B 3, regular FIFO, fifo %d\n", departureRound / (4*4*4) % 4); // Debug: Peixuan 07072019
+            }
+        }
 
 
     } else if (departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) > 1 || insertLevel == 2) { //original
@@ -256,7 +272,7 @@ void Gearbox_pl_fid_4levels::enque(Packet* packet) {
 }
 
 // Peixuan: This can be replaced by any other algorithms
-int Gearbox_pl_fid_4levels::cal_theory_departure_round(hdr_ip* iph, int pkt_size) {
+int Gearbox_pl_fid_5levels_origin::cal_theory_departure_round(hdr_ip* iph, int pkt_size) {
     //int		fid_;	/* flow id */
     //int		prio_;
     // parameters in iph
@@ -299,7 +315,7 @@ int Gearbox_pl_fid_4levels::cal_theory_departure_round(hdr_ip* iph, int pkt_size
 
 //06262019 Static getting all the departure packet in this virtual clock unit (JUST FOR SIMULATION PURPUSE!)
 
-Packet* Gearbox_pl_fid_4levels::deque() {
+Packet* Gearbox_pl_fid_5levels_origin::deque() {
 
     ///fprintf(stderr, "Start Dequeue\n"); // Debug: Peixuan 07062019
 
@@ -324,7 +340,7 @@ Packet* Gearbox_pl_fid_4levels::deque() {
         level0ServingB = ((int)(currentRound/FIFO_PER_LEVEL)%2);
         level1ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
         level2ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
-        //level3ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
+        level3ServingB = ((int)(currentRound/(FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))%2);
 
         ///fprintf(stderr, "Now update Round: %d, level 0 serving B = %d, level 1 serving B = %d, level 2 serving B = %d, level 3 serving B = %d.\n", currentRound, level0ServingB, level1ServingB, level2ServingB, level3ServingB); // Debug: Peixuan 07062019
         //this->deque();
@@ -369,7 +385,7 @@ Packet* Gearbox_pl_fid_4levels::deque() {
 }
 
 // Peixuan: now we only call this function to get the departure packet in the next round
-vector<Packet*> Gearbox_pl_fid_4levels::runRound() {
+vector<Packet*> Gearbox_pl_fid_5levels_origin::runRound() {
 
     ///fprintf(stderr, "Run Round\n"); // Debug: Peixuan 07062019
 
@@ -455,7 +471,7 @@ vector<Packet*> Gearbox_pl_fid_4levels::runRound() {
         bool is_level_1_update = false;
         bool is_level_2_update = false;
         bool is_level_3_update = false;
-        //bool is_level_4_update = false;
+        bool is_level_4_update = false;
 
         if (levels[0].getCurrentIndex() == 0) {
             is_level_1_update = true ;
@@ -489,11 +505,7 @@ vector<Packet*> Gearbox_pl_fid_4levels::runRound() {
             }
         }
 
-        if (is_level_3_update) {
-            levels[3].getAndIncrementIndex();            // Level 3 move to next FIFO
-        }
-
-        /*if (is_level_3_update && !level3ServingB) {
+        if (is_level_3_update && !level3ServingB) {
             levels[3].getAndIncrementIndex();           // Level 3 move to next FIFO
             if (levels[3].getCurrentIndex() == 0) {
                 is_level_4_update = true;
@@ -509,7 +521,7 @@ vector<Packet*> Gearbox_pl_fid_4levels::runRound() {
 
         if (is_level_4_update) {
             levels[4].getAndIncrementIndex();            // Level 4 move to next FIFO
-        }*/
+        }
 
 
         /*// level cur fifo updates
@@ -571,7 +583,7 @@ vector<Packet*> Gearbox_pl_fid_4levels::runRound() {
         bool is_level_1_update = false;
         bool is_level_2_update = false;
         bool is_level_3_update = false;
-        //bool is_level_4_update = false;
+        bool is_level_4_update = false;
 
         if (levelsB[0].getCurrentIndex() == 0) {
             is_level_1_update = true ;
@@ -605,11 +617,7 @@ vector<Packet*> Gearbox_pl_fid_4levels::runRound() {
             }
         }
 
-        if (is_level_3_update) {
-            levels[3].getAndIncrementIndex();            // Level 3 move to next FIFO
-        }
-
-        /*if (is_level_3_update && !level3ServingB) {
+        if (is_level_3_update && !level3ServingB) {
             levels[3].getAndIncrementIndex();           // Level 3 move to next FIFO
             if (levels[3].getCurrentIndex() == 0) {
                 is_level_4_update = true;
@@ -625,7 +633,7 @@ vector<Packet*> Gearbox_pl_fid_4levels::runRound() {
 
         if (is_level_4_update) {
             levels[4].getAndIncrementIndex();            // Level 4 move to next FIFO
-        }*/
+        }
 
 
         /*if (levelsB[0].getCurrentIndex() == 0) {
@@ -663,7 +671,7 @@ vector<Packet*> Gearbox_pl_fid_4levels::runRound() {
 
 //Peixuan: This is also used to get the packet served in this round (VC unit)
 // We need to adjust the order of serving: level0 -> level1 -> level2
-vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
+vector<Packet*> Gearbox_pl_fid_5levels_origin::serveUpperLevel(int currentRound) {
 
     ///fprintf(stderr, "Serving Upper Level\n"); // Debug: Peixuan 07062019
 
@@ -673,12 +681,12 @@ vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
     int level1size = 0;
     int level2size = 0;
     int level3size = 0;
-    //int level4size = 0;
+    int level4size = 0;
 
     int decadelevelsize = 0;
     int hundredlevelsize = 0;
     int thirdlevelsize = 0;
-    //int forthlevelsize = 0;
+    int forthlevelsize = 0;
 
     if (!level1ServingB) {
         level1size = levels[1].getCurrentFifoSize();
@@ -692,15 +700,13 @@ vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
         level2size = levelsB[2].getCurrentFifoSize();
     }
 
-    level3size = levels[3].getCurrentFifoSize();
-
-    /*if (!level3ServingB) {
+    if (!level3ServingB) {
         level3size = levels[3].getCurrentFifoSize();
     } else {
         level3size = levelsB[3].getCurrentFifoSize();
     }
 
-    level4size = levels[4].getCurrentFifoSize();*/
+    level4size = levels[4].getCurrentFifoSize();
 
 
 
@@ -716,15 +722,13 @@ vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
         hundredlevelsize = hundredLevelB.getCurrentFifoSize();
     }
 
-    thirdlevelsize = thirdLevel.getCurrentFifoSize();
-
-    /*if (!level3ServingB) {
+    if (!level3ServingB) {
         thirdlevelsize = thirdLevel.getCurrentFifoSize();
     } else {
         thirdlevelsize = thirdLevelB.getCurrentFifoSize();
     }
 
-    forthlevelsize = forthLevel.getCurrentFifoSize();*/
+    forthlevelsize = forthLevel.getCurrentFifoSize();
 
     // ToDo: swap the order of serving levels
 
@@ -889,8 +893,102 @@ vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
         }
     }
 
-    // then level 3
+
+
+
+
+    //Then: level 3
     if (currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL == STEP_DOWN_FIFO) {
+
+        int size = 0;
+
+        /*if (!level3ServingB) {
+            size = static_cast<int>(ceil((thirdLevel.getCurrentFifoSize() + levels[2].getCurrentFifoSize()) * 1.0 / ((4*4) - currentRound % (4*4))));  // 07212019 Peixuan *** Fix Level 2 serving order (fixed)
+        } else {
+            size = static_cast<int>(ceil((thirdLevelB.getCurrentFifoSize() + levelsB[2].getCurrentFifoSize()) * 1.0 / ((4*4) - currentRound % (4*4))));  // 07212019 Peixuan *** Fix Level 2 serving order (fixed)
+        }*/
+
+        size = static_cast<int>(ceil((thirdlevelsize + level2size) * 1.0 / ((FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound % (FIFO_PER_LEVEL*FIFO_PER_LEVEL))));  // 01132021 Peixuan *** Fix Level 2 serving order (fixed)
+
+
+
+
+        if (!level3ServingB) {
+            //int size = hundredLevel.getCurrentFifoSize();
+            ///fprintf(stderr, ">>>>>At Round:%d, Serve Level 2 Convergence FIFO with fifo: %d, size: %d\n", currentRound, thirdLevel.getCurrentIndex(), size); // Debug: Peixuan 07222019
+            for (int i = 0; i < size; i++) {
+                Packet* p = thirdLevel.deque();
+                if (p == 0)
+                    break;
+                result.push_back(p);
+
+                hdr_ip* iph = hdr_ip::access(p);                   // 07092019 Peixuan Debug
+
+                ///fprintf(stderr, "^^^^^At Round:%d, Round Deque Flow %d Packet From Level 2 Convergence FIFO, fifo: %d\n", currentRound, iph->saddr(), thirdLevel.getCurrentIndex()); // Debug: Peixuan 07092019
+            }
+            if (currentRound % (FIFO_PER_LEVEL * FIFO_PER_LEVEL) == (FIFO_PER_LEVEL * FIFO_PER_LEVEL) - 1)
+                thirdLevel.getAndIncrementIndex();
+        } else {
+
+            //int size = hundredLevelB.getCurrentFifoSize();
+            ///fprintf(stderr, ">>>>>At Round:%d, Serve Level B 2 Convergence FIFO with fifo: %d, size: %d\n", currentRound, thirdLevelB.getCurrentIndex(), size); // Debug: Peixuan 07222019
+            for (int i = 0; i < size; i++) {
+                Packet* p = thirdLevelB.deque();
+                if (p == 0)
+                    break;
+                result.push_back(p);
+
+                hdr_ip* iph = hdr_ip::access(p);                   // 07092019 Peixuan Debug
+
+                ///fprintf(stderr, "^^^^^At Round:%d, Round Deque Flow %d Packet From Level B 2 Convergence FIFO, fifo: %d\n", currentRound, iph->saddr(), thirdLevelB.getCurrentIndex()); // Debug: Peixuan 07092019
+
+            }
+            if (currentRound % (FIFO_PER_LEVEL * FIFO_PER_LEVEL) == (FIFO_PER_LEVEL * FIFO_PER_LEVEL) - 1)
+                thirdLevelB.getAndIncrementIndex();
+
+        }
+
+
+    }
+    else {
+        if (!level3ServingB) {
+            if (!levels[3].isCurrentFifoEmpty()) {
+                int size = static_cast<int>(ceil(levels[3].getCurrentFifoSize() * 1.0 / ((FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound % (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))));   // 07212019 Peixuan *** Fix Level 1 serving order (ori)
+                //int size = static_cast<int>(ceil((hundredLevel.getCurrentFifoSize() + levels[2].getCurrentFifoSize()) * 1.0 / (10 - currentRound % 10)));  // 07212019 Peixuan *** Fix Level 1 serving order (fixed)
+                ///fprintf(stderr, ">>>At Round:%d, Serve Level 2 Regular FIFO with fifo: %d, size: %d\n", currentRound, levels[3].getCurrentIndex(), size); // Debug: Peixuan 07222019
+                for (int i = 0; i < size; i++) {
+                    Packet* p = levels[3].deque();
+                    if (p == 0)
+                        break;
+                    hdr_ip* iph = hdr_ip::access(p);                   // 07092019 Peixuan Debug
+
+                    ///fprintf(stderr, "^^^^^At Round:%d, Round Deque Flow %d Packet From Level 2, fifo: %d\n", currentRound, iph->saddr(), levels[3].getCurrentIndex()); // Debug: Peixuan 07092019
+                    result.push_back(p);
+                }
+            }
+        } else {
+            if (!levelsB[3].isCurrentFifoEmpty()) {
+                int size = static_cast<int>(ceil(levelsB[3].getCurrentFifoSize() * 1.0 / ((FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound % (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))));   // 07212019 Peixuan *** Fix Level 1 serving order (ori)
+                //int size = static_cast<int>(ceil((hundredLevel.getCurrentFifoSize() + levels[2].getCurrentFifoSize()) * 1.0 / (10 - currentRound % 10)));  // 07212019 Peixuan *** Fix Level 1 serving order (fixed)
+                ///fprintf(stderr, ">>>At Round:%d, Serve Level 2 B Regular FIFO with fifo: %d, size: %d\n", currentRound, levelsB[3].getCurrentIndex(), size); // Debug: Peixuan 07222019
+                for (int i = 0; i < size; i++) {
+                    Packet* p = levelsB[3].deque();
+                    if (p == 0)
+                        break;
+                    hdr_ip* iph = hdr_ip::access(p);                   // 07092019 Peixuan Debug
+
+                    ///fprintf(stderr, "^^^^^At Round:%d, Round Deque Flow %d Packet From Level B 2, fifo: %d\n", currentRound, iph->saddr(), levelsB[3].getCurrentIndex()); // Debug: Peixuan 07092019
+                    result.push_back(p);
+                }
+            }
+
+        }
+    }
+
+
+
+    // then level 4
+    if (currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL == STEP_DOWN_FIFO) {
         //int size = static_cast<int>(ceil(hundredLevel.getCurrentFifoSize() * 1.0 / (10 - currentRound % 10)));  // 07212019 Peixuan *** Fix Level 2 serving order (ori)
         //int size = static_cast<int>(ceil((hundredLevel.getCurrentFifoSize() + levels[1].getCurrentFifoSize()) * 1.0 / (10 - currentRound % 10)));  // 07212019 Peixuan *** Fix Level 2 serving order (fixed)
 
@@ -902,13 +1000,13 @@ vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
             size = static_cast<int>(ceil((forthLevel.getCurrentFifoSize() + levelsB[3].getCurrentFifoSize()) * 1.0 / ((4*4*4) - currentRound % (4*4*4))));  // 07212019 Peixuan *** Fix Level 2 serving order (fixed)
         }*/
 
-        size = static_cast<int>(ceil((thirdlevelsize + level2size) * 1.0 / ((FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound % (FIFO_PER_LEVEL*FIFO_PER_LEVEL))));  // 01132021 Peixuan *** Fix Level 2 serving order (fixed)
+        size = static_cast<int>(ceil((forthlevelsize + level3size) * 1.0 / ((FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound % (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))));  // 01132021 Peixuan *** Fix Level 2 serving order (fixed)
 
         //size = static_cast<int>(ceil((hundredLevel.getCurrentFifoSize() + levels[1].getCurrentFifoSize() + levelsB[1].getCurrentFifoSize()) * 1.0 / (10 - currentRound % 10)));  // 07212019 Peixuan *** Fix Level 2 serving order (fixed)
 
         //int size = hundredLevel.getCurrentFifoSize();
         for (int i = 0; i < size; i++) {
-            Packet* p = thirdLevel.deque();
+            Packet* p = forthLevel.deque();
             if (p == 0)
                 break;
             hdr_ip* iph = hdr_ip::access(p);                   // 07092019 Peixuan Debug
@@ -917,19 +1015,19 @@ vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
             result.push_back(p);
         }
 
-        /*if (thirdLevel.getCurrentFifoSize() && currentRound / FIFO_PER_LEVEL % FIFO_PER_LEVEL != STEP_DOWN_FIFO)  // 07222019 Peixuan ***: If hundredLevel not empty, serve it until it is empty (Except Level 1 is serving Convergence FIFO (decade FIFO))
+        /*if (forthLevel.getCurrentFifoSize() && currentRound / FIFO_PER_LEVEL % FIFO_PER_LEVEL != STEP_DOWN_FIFO)  // 07222019 Peixuan ***: If hundredLevel not empty, serve it until it is empty (Except Level 1 is serving Convergence FIFO (decade FIFO))
         //if (hundredLevel.getCurrentFifoSize())  // 07212019 Peixuan ***: If hundredLevel not empty, serve it until it is empty
             return result;                      // 07212019 Peixuan ***/
 
-        if (currentRound % (FIFO_PER_LEVEL * FIFO_PER_LEVEL) == (FIFO_PER_LEVEL * FIFO_PER_LEVEL) - 1)
-            thirdLevel.getAndIncrementIndex();
+        if (currentRound % (FIFO_PER_LEVEL * FIFO_PER_LEVEL * FIFO_PER_LEVEL) == (FIFO_PER_LEVEL * FIFO_PER_LEVEL * FIFO_PER_LEVEL) - 1)
+            forthLevel.getAndIncrementIndex();
 
 
 
-    } else if (!levels[3].isCurrentFifoEmpty()) {
-        int size = static_cast<int>(ceil(levels[3].getCurrentFifoSize() * 1.0 / ((FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound % (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))));
+    } else if (!levels[4].isCurrentFifoEmpty()) {
+        int size = static_cast<int>(ceil(levels[4].getCurrentFifoSize() * 1.0 / ((FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound % (FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL*FIFO_PER_LEVEL))));
         for (int i = 0; i < size; i++) {
-            Packet* p = levels[3].deque();
+            Packet* p = levels[4].deque();
             if (p == 0)
                 break;
             hdr_ip* iph = hdr_ip::access(p);                   // 07092019 Peixuan Debug
@@ -938,6 +1036,28 @@ vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
             result.push_back(p);
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /*//First: then level 2
     if (currentRound / (4*4) % 4 == 2) {
@@ -1065,8 +1185,8 @@ vector<Packet*> Gearbox_pl_fid_4levels::serveUpperLevel(int currentRound) {
 
 
 // 12132019 Peixuan
-//Flow_pl* Gearbox_pl_fid_4levels::getFlowPtr(nsaddr_t saddr, nsaddr_t daddr) {
-Flow* Gearbox_pl_fid_4levels::getFlowPtr(int fid) {
+//Flow_pl* Gearbox_pl_fid_5levels_origin::getFlowPtr(nsaddr_t saddr, nsaddr_t daddr) {
+Flow* Gearbox_pl_fid_5levels_origin::getFlowPtr(int fid) {
 
     string key = convertKeyValue(fid);  // Peixuan 04212020
     Flow* flow;
@@ -1079,8 +1199,8 @@ Flow* Gearbox_pl_fid_4levels::getFlowPtr(int fid) {
     return flow;
 }
 
-//Flow_pl* Gearbox_pl_fid_4levels::insertNewFlowPtr(nsaddr_t saddr, nsaddr_t daddr, int weight, int brustness) {
-Flow* Gearbox_pl_fid_4levels::insertNewFlowPtr(int fid, int weight, int brustness) { // Peixuan 04212020
+//Flow_pl* Gearbox_pl_fid_5levels_origin::insertNewFlowPtr(nsaddr_t saddr, nsaddr_t daddr, int weight, int brustness) {
+Flow* Gearbox_pl_fid_5levels_origin::insertNewFlowPtr(int fid, int weight, int brustness) { // Peixuan 04212020
     //pair<ns_addr_t, ns_addr_t> key = make_pair(saddr, daddr);
     //string key = convertKeyValue(saddr, daddr);
     string key = convertKeyValue(fid);  // Peixuan 04212020
@@ -1092,8 +1212,8 @@ Flow* Gearbox_pl_fid_4levels::insertNewFlowPtr(int fid, int weight, int brustnes
     return this->flowMap[key];
 }
 
-//int Gearbox_pl_fid_4levels::updateFlowPtr(nsaddr_t saddr, nsaddr_t daddr, Flow_pl* flowPtr) {
-int Gearbox_pl_fid_4levels::updateFlowPtr(int fid, Flow* flowPtr) { // Peixuan 04212020
+//int Gearbox_pl_fid_5levels_origin::updateFlowPtr(nsaddr_t saddr, nsaddr_t daddr, Flow_pl* flowPtr) {
+int Gearbox_pl_fid_5levels_origin::updateFlowPtr(int fid, Flow* flowPtr) { // Peixuan 04212020
     //pair<ns_addr_t, ns_addr_t> key = make_pair(saddr, daddr);
     //string key = convertKeyValue(saddr, daddr);
     string key = convertKeyValue(fid);  // Peixuan 04212020
@@ -1105,8 +1225,8 @@ int Gearbox_pl_fid_4levels::updateFlowPtr(int fid, Flow* flowPtr) { // Peixuan 0
     return 0;
 }
 
-//string Gearbox_pl_fid_4levels::convertKeyValue(nsaddr_t saddr, nsaddr_t daddr) {
-string Gearbox_pl_fid_4levels::convertKeyValue(int fid) { // Peixuan 04212020
+//string Gearbox_pl_fid_5levels_origin::convertKeyValue(nsaddr_t saddr, nsaddr_t daddr) {
+string Gearbox_pl_fid_5levels_origin::convertKeyValue(int fid) { // Peixuan 04212020
     stringstream ss;
     //ss << saddr;
     //ss << ":";
