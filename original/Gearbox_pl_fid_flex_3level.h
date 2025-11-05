@@ -7,12 +7,12 @@
 
 using namespace std;
 
-class Gearbox_pl_fid_4levels : public Queue {
+class Gearbox_pl_fid_3levels : public Queue {
 private:
-    static const int DEFAULT_VOLUME = 4;
-    static const int FIFO_PER_LEVEL = 8;         // 01212020 Peixuan flex level
-    static const int STEP_DOWN_FIFO = 9;         // 01212020 Peixuan flex level
-    static const int DEFAULT_WEIGHT = 2;         // 01032019 Peixuan default weight
+    static const int DEFAULT_VOLUME = 3;
+    static const int FIFO_PER_LEVEL = 10;         // 01212020 Peixuan flex level
+    static const int STEP_DOWN_FIFO = 11;         // 01212020 Peixuan flex level
+    static const int DEFAULT_WEIGHT = 4;         // 01032019 Peixuan default weight
     static const int DEFAULT_BRUSTNESS = 1000;    // 01032019 Peixuan default brustness
     static const int TIMEUNIT = 1;    // 01032019 Peixuan default brustness
     int volume;                     // num of Level_flexs in scheduler
@@ -23,19 +23,19 @@ private:
     vector<Level>levelsB;       // Back up Levels
 
     //Level_flex forthLevel;
-    Level thirdLevel{FIFO_PER_LEVEL};
+    //Level_flex thirdLevel;
 
     Level hundredLevel{FIFO_PER_LEVEL};
     Level decadeLevel{FIFO_PER_LEVEL};
 
     //Level_flex thirdLevelB;    // Back up Level_flexs
-    Level hundredLevelB{FIFO_PER_LEVEL};    // Back up Level_flexs
+    //Level_flex hundredLevelB;    // Back up Level_flexs
     Level decadeLevelB{FIFO_PER_LEVEL};     // Back up Levels
 
     bool level0ServingB;          // is serve Back up Levels
     bool level1ServingB;          // is serve Back up Levels
 
-    bool level2ServingB;          // is serve Back up Levels
+    //bool level2ServingB;          // is serve Back up Levels
     //bool level3ServingB;          // is serve Back up Levels
     //bool level4ServingB;          // is serve Back up Levels
 
@@ -71,8 +71,8 @@ private:
 
 
 public:
-    Gearbox_pl_fid_4levels();
-    explicit Gearbox_pl_fid_4levels(int);
+    Gearbox_pl_fid_3levels();
+    explicit Gearbox_pl_fid_3levels(int);
     void enque(Packet*);
     Packet* deque();
     void setCurrentRound(int);
