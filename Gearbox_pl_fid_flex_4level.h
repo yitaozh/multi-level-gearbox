@@ -4,8 +4,10 @@
 #include <string>
 
 #include <map>
-
 using namespace std;
+
+static const int WEIGHT_LIST_LEN = 3;
+static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 10, 100};
 
 class Gearbox_pl_fid_4levels : public Queue {
 private:
