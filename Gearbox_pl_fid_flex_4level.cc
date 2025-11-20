@@ -92,7 +92,8 @@ void Gearbox_pl_fid_4levels::enque(Packet* packet) {
         //flowMap[key] = Flow_pl(iph->saddr, iph->daddr, 2, 100);
         //insertNewFlowPtr(iph->saddr(), iph->daddr(), 2, 100);
         //this->insertNewFlowPtr(iph->saddr(), iph->daddr(), DEFAULT_WEIGHT, DEFAULT_BRUSTNESS);
-        this->insertNewFlowPtr(iph->flowid(), DEFAULT_WEIGHT, DEFAULT_BRUSTNESS); // Peixuan 04212020 fid
+        int weight = WEIGHT_LIST[iph->flowid() % WEIGHT_LIST_LEN];
+        this->insertNewFlowPtr(iph->flowid(), weight, DEFAULT_BRUSTNESS); // Peixuan 04212020 fid
     }
 
 
@@ -1073,7 +1074,8 @@ Flow* Gearbox_pl_fid_4levels::getFlowPtr(int fid) {
     if (flowMap.find(key) == flowMap.end()) {
         //flow = this->insertNewFlowPtr(saddr, daddr, 2, 100);
         //flow = this->insertNewFlowPtr(saddr, daddr, DEFAULT_WEIGHT, DEFAULT_BRUSTNESS);
-        flow = this->insertNewFlowPtr(fid, DEFAULT_WEIGHT, DEFAULT_BRUSTNESS); // Peixuan 04212020
+        int weight = WEIGHT_LIST[fid % WEIGHT_LIST_LEN];
+        flow = this->insertNewFlowPtr(fid, weight, DEFAULT_BRUSTNESS); // Peixuan 04212020
     }
     flow = this->flowMap[key];
     return flow;
