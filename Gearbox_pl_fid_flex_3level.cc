@@ -103,6 +103,13 @@ void Gearbox_pl_fid_3levels::enque(Packet* packet) {
     departureRound = max(departureRound, currentRound);
 
     if ((departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL)) >= FIFO_PER_LEVEL) {
+        int smallestDepartureRound = *lastDepartureRound.begin();
+        if (pktCount == 0 && smallestDepartureRound > currentRound) {
+            currentRound = smallestDepartureRound;
+        }
+    }
+
+    if ((departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL)) >= FIFO_PER_LEVEL) {
         ///fprintf(stderr, "?????Exceeds maximum round, drop the packet from Flow %d\n", iph->saddr()); // Debug: Peixuan 07072019
         drop(packet);
         return;   // 07072019 Peixuan: exceeds the maximum round
@@ -117,8 +124,9 @@ void Gearbox_pl_fid_3levels::enque(Packet* packet) {
         return;   // 07102019 Peixuan: exceeds the maximum brustness
     }
 
-    currFlow->setLastDepartureRound(departureRound);     // 07102019 Peixuan: only update last packet finish time if the packet wasn't dropped
-    //this->updateFlowPtr(iph->saddr(), iph->daddr(), currFlow);  //12182019 Peixuan
+    currFlow->setLastDepartureRound(departureRound + currFlow->getWeight());     // 07102019 Peixuan: only update last packet finish time if the packet wasn't dropped
+    lastDepartureRound.erase(lastDepartureRound.find(departureRound)); // Remove the old departure round value
+    lastDepartureRound.insert(departureRound + currFlow->getWeight());
     this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
 
     ///fprintf(stderr, "At Round: %d, Enqueue Packet from Flow %d with Finish time = %d.\n", currentRound, iph->saddr(), departureRound); // Debug: Peixuan 07072019
@@ -256,12 +264,12 @@ int Gearbox_pl_fid_3levels::cal_theory_departure_round(hdr_ip* iph, int pkt_size
 
     //int curDeaprtureRound = (int)(curStartRound + pkt_size/curWeight); // TODO: This line needs to take another thought
 
-    int curDeaprtureRound = (int)(curStartRound + curWeight); // 07072019 Peixuan: basic test
+    // int curDeaprtureRound = (int)(curStartRound + curWeight); // 07072019 Peixuan: basic test
 
     ///fprintf(stderr, "$$$$$At Round: %d, Calculated Packet From Flow:%d with Departure Round = %d\n", currentRound, iph->saddr(), curDeaprtureRound); // Debug: Peixuan 07062019
     // TODO: need packet length and bandwidh relation
     //flows[curFlowID].setLastDepartureRound(curDeaprtureRound);
-    return curDeaprtureRound;
+    return curStartRound;
 }
 
 //06262019 Peixuan deque function of Gearbox:

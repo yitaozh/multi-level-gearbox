@@ -2,12 +2,13 @@
 #include "flow.h"
 #include <vector>
 #include <string>
-
 #include <map>
+#include <set>
+
 using namespace std;
 
 static const int WEIGHT_LIST_LEN = 3;
-static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 10, 100};
+static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 100, 10000};
 
 class Gearbox_one_pl : public Queue {
 private:
@@ -15,7 +16,7 @@ private:
     static const int SET_GRANULARITY = 10;       // TimeStamp Range of each queue set (level.cc)
     static const int DEFAULT_VOLUME = 1000;
     static const int DEFAULT_WEIGHT = 4;         // 01032019 Peixuan default weight
-    static const int DEFAULT_BRUSTNESS = 10000;    // 01032019 Peixuan default brustness
+    static const int DEFAULT_BRUSTNESS = 100000;    // 01032019 Peixuan default brustness
     int volume;                     // num of levels in scheduler
     int currentRound;           // current Round
     int pktCount;           // packet count
@@ -50,6 +51,8 @@ private:
     //string convertKeyValue(nsaddr_t saddr, nsaddr_t daddr);
     string convertKeyValue(int fid);    // Peixuan 04212020
 
+    multiset<int> lastDepartureRound;
+
 public:
     //hierarchicalQueue();
     //explicit hierarchicalQueue(int);
@@ -62,5 +65,4 @@ public:
     int cal_insert_level(int, int);
     // Packet* serveCycle();
     // vector<Packet> serveUpperLevel(int &, int);
-
 };

@@ -2,8 +2,9 @@
 #include "flow.h"
 #include <vector>
 #include <string>
-
 #include <map>
+#include <set>
+
 using namespace std;
 
 static const int WEIGHT_LIST_LEN = 3;
@@ -71,6 +72,7 @@ private:
     //string convertKeyValue(nsaddr_t saddr, nsaddr_t daddr);
     string convertKeyValue(int fid);    // Peixuan 04212020
 
+    multiset<int> lastDepartureRound;
 
 public:
     Gearbox_pl_fid_2level();

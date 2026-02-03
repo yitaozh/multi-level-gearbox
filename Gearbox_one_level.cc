@@ -96,8 +96,21 @@ void Gearbox_one_pl::enque(Packet* packet) {
     departureRound = max(departureRound, currentRound);
 	// fprintf(stderr, "$$$$rank=  %d\n", departureRound - currentRound); // Debug: Peixuan 11072022
 
+    // Yitao: the logic here:
+    // every time a packet is sent out, it's lastDepartureRound is recorded in the set
+    // which is departureRound + weight
+    // when should we advance the virtual clock?
+    // 1. if there are still packets in the queue, then do not advance the virtual clock
+    // 2. if there's no packets in the queue, then we can check the smallest lastDepartureRound in the set
+    //    and advance the virtual clock to that round
     if ((departureRound - currentRound) >= SET_GRANULARITY * SET_NUMBER) {
-        // fprintf(stderr, "?????Exceeds maximum round, drop the packet from Flow %d\n", iph->saddr()); // Debug: Peixuan 07072019
+        int smallestDepartureRound = *lastDepartureRound.begin();
+        if (pktCount == 0 && smallestDepartureRound > currentRound) {
+            currentRound = smallestDepartureRound;
+        }
+    }
+
+    if ((departureRound - currentRound) >= SET_GRANULARITY * SET_NUMBER) {
         drop(packet);
         return;   // 07072019 Peixuan: exceeds the maximum round
     }
@@ -110,9 +123,9 @@ void Gearbox_one_pl::enque(Packet* packet) {
         return;   // 07102019 Peixuan: exceeds the maximum brustness
     }
 
-    //flows[curFlowID].setLastDepartureRound(departureRound);     // 07102019 Peixuan: only update last packet finish time if the packet wasn't dropped
-    currFlow->setLastDepartureRound(departureRound);
-    //this->updateFlowPtr(iph->saddr(), iph->daddr(),currFlow);
+    currFlow->setLastDepartureRound(departureRound + currFlow->getWeight());     // 07102019 Peixuan: only update last packet finish time if the packet wasn't dropped
+    lastDepartureRound.erase(lastDepartureRound.find(departureRound)); // Remove the old departure round value
+    lastDepartureRound.insert(departureRound + currFlow->getWeight());
     this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
 
     if ((departureRound - currentRound) < SET_GRANULARITY * SET_NUMBER) {
@@ -168,12 +181,13 @@ int Gearbox_one_pl::cal_theory_departure_round(hdr_ip* iph, int pkt_size) {
 
     //int curDeaprtureRound = (int)(curStartRound + pkt_size/curWeight); // TODO: This line needs to take another thought
 
-    int curDeaprtureRound = (int)(curStartRound + curWeight); // 07072019 Peixuan: basic test
+    // Yitao: comment this to use SFQ
+    // int curDeaprtureRound = (int)(curStartRound + curWeight); // 07072019 Peixuan: basic test
 
     // fprintf(stderr, "$$$$$Calculated Packet From Flow:%d with Departure Round = %d\n",iph->saddr() , curDeaprtureRound); // Debug: Peixuan 07062019
     // TODO: need packet length and bandwidh relation
     //flows[curFlowID].setLastDepartureRound(curDeaprtureRound);
-    return curDeaprtureRound;
+    return curStartRound;
 }
 
 //06262019 Peixuan deque function of Gearbox:
