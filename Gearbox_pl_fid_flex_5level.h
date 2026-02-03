@@ -7,7 +7,7 @@
 using namespace std;
 
 static const int WEIGHT_LIST_LEN = 3;
-static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 10, 100};
+static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 100, 10000};
 
 class Gearbox_pl_fid_5levels : public Queue {
 private:
@@ -15,7 +15,7 @@ private:
     static const int FIFO_PER_LEVEL = 6;         // 01212020 Peixuan flex level
     static const int STEP_DOWN_FIFO = 7;         // 01212020 Peixuan flex level
     static const int DEFAULT_WEIGHT = 4;         // 01032019 Peixuan default weight
-    static const int DEFAULT_BRUSTNESS = 1000;    // 01032019 Peixuan default brustness
+    static const int DEFAULT_BRUSTNESS = 100000;    // 01032019 Peixuan default brustness
     static const int TIMEUNIT = 1;    // 01032019 Peixuan default brustness
     int volume;                     // num of Level_flexs in scheduler
     int currentRound;           // current Round
