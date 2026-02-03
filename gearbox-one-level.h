@@ -10,17 +10,17 @@ static const int NUM_LEVELS = 1;
 static const int HIGHEST_LEVEL = NUM_LEVELS - 1;
 static const int FIFO_PER_LEVEL = 32;
 /**
- * A new flow can send a certain amount of data (related to the value 1000) before 
+ * A new flow can send a certain amount of data (related to the value 1000) before
  * it is considered "non-bursty" and its packets are placed in lower priority queues,
  * resulting in higher latency.
  */
-static const int DEFAULT_BURSTINESS = 1000;
+static const int DEFAULT_BURSTINESS = 100000;
 static const int WEIGHT_LIST_LEN = 4;
 static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 1, 1, 1};
 
 class GearboxOneLevel : public Queue {
 private:
-    int num_levels_; 
+    int num_levels_;
     int current_round_;
     int pkt_count_;
 

@@ -14,17 +14,17 @@ static const int POWERS[2] = {1, FIFO_PER_LEVEL};
 // TODO(yitao): not implemented for now
 static const int STEP_DOWN_FIFO = 8;
 /**
- * A new flow can send a certain amount of data (related to the value 1000) before 
+ * A new flow can send a certain amount of data (related to the value 1000) before
  * it is considered "non-bursty" and its packets are placed in lower priority queues,
  * resulting in higher latency.
  */
-static const int DEFAULT_BURSTINESS = 1000;
+static const int DEFAULT_BURSTINESS = 100000;
 static const int WEIGHT_LIST_LEN = 4;
 static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 1, 1, 1};
 
 class GearboxTwoLevels : public Queue {
 private:
-    int num_levels_; 
+    int num_levels_;
     int current_round_;
     int pkt_count_;
 
