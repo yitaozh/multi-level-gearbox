@@ -1,7 +1,10 @@
 #include <cmath>
 #include <sstream>
+#include <map>
 
 #include "Gearbox_one_level.h"
+
+extern std::map<int, int> flow_max_level;
 
 static class Gearbox_one_plClass : public TclClass {
 public:
@@ -93,6 +96,9 @@ void Gearbox_one_pl::enque(Packet* packet) {
     //int insertLevel = flows[flowId].getInsertLevel(); //HCS->AFQ
     int insertLevel = 0;
 
+    // Update flow max level
+    flow_max_level[iph->flowid()] = insertLevel;
+
     departureRound = max(departureRound, currentRound);
 	// fprintf(stderr, "$$$$rank=  %d\n", departureRound - currentRound); // Debug: Peixuan 11072022
 
@@ -105,9 +111,9 @@ void Gearbox_one_pl::enque(Packet* packet) {
     //    and advance the virtual clock to that round
     if ((departureRound - currentRound) >= SET_GRANULARITY * SET_NUMBER) {
         int smallestDepartureRound = *lastDepartureRound.begin();
-        if (pktCount == 0 && smallestDepartureRound > currentRound) {
-            currentRound = smallestDepartureRound;
-        }
+        if (pktCount == 0) {
+            currentRound = departureRound;
+        };
     }
 
     if ((departureRound - currentRound) >= SET_GRANULARITY * SET_NUMBER) {
@@ -124,7 +130,9 @@ void Gearbox_one_pl::enque(Packet* packet) {
     }
 
     currFlow->setLastDepartureRound(departureRound + currFlow->getWeight());     // 07102019 Peixuan: only update last packet finish time if the packet wasn't dropped
-    lastDepartureRound.erase(lastDepartureRound.find(departureRound)); // Remove the old departure round value
+    if (lastDepartureRound.find(departureRound) != lastDepartureRound.end()) {
+        lastDepartureRound.erase(lastDepartureRound.find(departureRound)); // Remove the old departure round value
+    }
     lastDepartureRound.insert(departureRound + currFlow->getWeight());
     this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
 

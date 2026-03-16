@@ -1,7 +1,11 @@
 #include <cmath>
 #include <sstream>
+#include <map>
+#include <algorithm>
 
 #include "Gearbox_pl_fid_flex_3level.h"
+
+extern std::map<int, int> flow_max_level;
 
 static class Gearbox_pl_fid_flex_3levelsClass : public TclClass {
 public:
@@ -99,14 +103,17 @@ void Gearbox_pl_fid_3levels::enque(Packet* packet) {
 
     Flow* currFlow = flowMap[key];
     int insertLevel = currFlow->getInsertLevel();
+    
+    // Update global flow max level
+    flow_max_level[iph->flowid()] = insertLevel;
 
     departureRound = max(departureRound, currentRound);
 
     if ((departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL)) >= FIFO_PER_LEVEL) {
         int smallestDepartureRound = *lastDepartureRound.begin();
-        if (pktCount == 0 && smallestDepartureRound > currentRound) {
-            currentRound = smallestDepartureRound;
-        }
+        if (pktCount == 0) {
+            currentRound = departureRound;
+        };
     }
 
     if ((departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) - currentRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL)) >= FIFO_PER_LEVEL) {
@@ -125,7 +132,9 @@ void Gearbox_pl_fid_3levels::enque(Packet* packet) {
     }
 
     currFlow->setLastDepartureRound(departureRound + currFlow->getWeight());     // 07102019 Peixuan: only update last packet finish time if the packet wasn't dropped
-    lastDepartureRound.erase(lastDepartureRound.find(departureRound)); // Remove the old departure round value
+    if (lastDepartureRound.find(departureRound) != lastDepartureRound.end()) {
+        lastDepartureRound.erase(lastDepartureRound.find(departureRound)); // Remove the old departure round value
+    }
     lastDepartureRound.insert(departureRound + currFlow->getWeight());
     this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
 
@@ -168,10 +177,11 @@ void Gearbox_pl_fid_3levels::enque(Packet* packet) {
             } else {
                 currFlow->setInsertLevel(2);
                 //this->updateFlowPtr(iph->saddr(), iph->daddr(),currFlow);  //12182019 Peixuan
-                this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
-                levels[2].enque(packet, departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL);
-                ///fprintf(stderr, "Enqueue Level 3, regular FIFO, fifo %d\n", departureRound / (4*4*4) % 4); // Debug: Peixuan 07072019
-            }
+            this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
+            levels[2].enque(packet, departureRound / (FIFO_PER_LEVEL*FIFO_PER_LEVEL) % FIFO_PER_LEVEL);
+            iph->prio() = 2; // Record insert level
+            ///fprintf(stderr, "Enqueue Level 3, regular FIFO, fifo %d\n", departureRound / (4*4*4) % 4); // Debug: Peixuan 07072019
+        }
 
 
     } else if (departureRound / FIFO_PER_LEVEL - currentRound / FIFO_PER_LEVEL > 1 || insertLevel == 1) {
@@ -214,6 +224,7 @@ void Gearbox_pl_fid_3levels::enque(Packet* packet) {
             //this->updateFlowPtr(iph->saddr(), iph->daddr(),currFlow);  //12182019 Peixuan
             this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
             levels[0].enque(packet, departureRound % FIFO_PER_LEVEL);
+            iph->prio() = 0; // Record insert level
             ///fprintf(stderr, "Enqueue Level 0, regular FIFO, fifo %d\n", departureRound % 4); // Debug: Peixuan 07072019
         } else {
             /////fprintf(stderr, "Enqueue Level B 0\n"); // Debug: Peixuan 07072019
@@ -221,6 +232,7 @@ void Gearbox_pl_fid_3levels::enque(Packet* packet) {
             //this->updateFlowPtr(iph->saddr(), iph->daddr(),currFlow);  //12182019 Peixuan
             this->updateFlowPtr(iph->flowid(), currFlow);  // Peixuan 04212020 fid
             levelsB[0].enque(packet, departureRound % FIFO_PER_LEVEL);
+            iph->prio() = 0; // Record insert level
             ///fprintf(stderr, "Enqueue Level B 0, regular FIFO, fifo %d\n", departureRound % 4); // Debug: Peixuan 07072019
         }
 

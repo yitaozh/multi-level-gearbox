@@ -8,7 +8,7 @@
 using namespace std;
 
 static const int WEIGHT_LIST_LEN = 3;
-static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 100, 10000};
+static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 20, 100};
 
 class Gearbox_one_pl : public Queue {
 private:

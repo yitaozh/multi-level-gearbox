@@ -8,13 +8,13 @@
 using namespace std;
 
 static const int WEIGHT_LIST_LEN = 3;
-static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 100, 10000};
+static const int WEIGHT_LIST[WEIGHT_LIST_LEN] = {1, 20, 100};
 
 class Gearbox_pl_fid_4levels : public Queue {
 private:
     static const int DEFAULT_VOLUME = 4;
     static const int FIFO_PER_LEVEL = 8;         // 01212020 Peixuan flex level
-    static const int STEP_DOWN_FIFO = 9;         // 01212020 Peixuan flex level
+    static const int STEP_DOWN_FIFO = 7;         // 01212020 Peixuan flex level
     static const int DEFAULT_WEIGHT = 4;         // 01032019 Peixuan default weight
     static const int DEFAULT_BRUSTNESS = 100000;    // 01032019 Peixuan default brustness
     static const int TIMEUNIT = 1;    // 01032019 Peixuan default brustness

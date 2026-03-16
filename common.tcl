@@ -426,6 +426,7 @@ TCP_pair instproc fin_notify {} {
     $self set Tw [$tcps start_wait]
     $self set Tp [$tcps prempt_wait]
     $self set Np [$tcps num_prempt]
+    set level [$tcps get-max-level]
 
     #
     # : Start a new connection
@@ -433,7 +434,7 @@ TCP_pair instproc fin_notify {} {
     $tcpr close
 
     if { [info exists aggr_ctrl] } {
-	$aggr_ctrl $fin_cbfunc $pair_id $bytes $dt $bps [expr $rttimes - $old_rttimes] $t_deadline $Tw $Tp $Np $start_time
+	$aggr_ctrl $fin_cbfunc $pair_id $bytes $dt $bps [expr $rttimes - $old_rttimes] $t_deadline $Tw $Tp $Np $start_time $level
     }
 }
 
@@ -465,13 +466,10 @@ Agent/TCP/FullTcp instproc set_callback {tcp_pair} {
 }
 
 Agent/TCP/FullTcp instproc done_data {} {
-#	puts "done_data"
-    global ns sink
-    $self instvar ctrl
-#puts "[$ns now] $self fin-ack received";
-    if { [info exists ctrl] } {
-	$ctrl fin_notify
-    }
+	$self instvar ctrl
+	if { [info exists ctrl] } {
+		$ctrl fin_notify
+	}
 }
 
 Class Agent_Aggr_pair
@@ -955,7 +953,7 @@ Agent_Aggr_pair instproc check_if_behind {} {
 }
 
 
-Agent_Aggr_pair instproc fin_notify { pid bytes fldur bps rttimes t_deadline Tw_ Tp_ Np_ start_time_} {
+Agent_Aggr_pair instproc fin_notify { pid bytes fldur bps rttimes t_deadline Tw_ Tp_ Np_ start_time_ level_} {
 #Callback Function
 #pid  : pair_id
 #bytes : nr of bytes of the flow which has just finished
@@ -992,7 +990,7 @@ Agent_Aggr_pair instproc fin_notify { pid bytes fldur bps rttimes t_deadline Tw_
         set tmp_pkts [expr $bytes / 1460.0000]
 	
 	#puts $logfile "$tmp_pkts $fldur $rttimes"
-	puts $logfile "$tmp_pkts $fldur $fin_fid $rttimes $group_id $Tw_ $Tp_ $Np_ [expr $bytes*8/$fldur] $start_time_"
+	puts $logfile "$tmp_pkts $fldur $fin_fid $rttimes $group_id $Tw_ $Tp_ $Np_ [expr $bytes*8/$fldur] $start_time_ $level_"
 	flush stdout
     }
     set flow_fin [expr $flow_fin + 1]
